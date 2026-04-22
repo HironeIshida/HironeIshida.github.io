@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>行列の低ランク近似 | 研究 | Hirone Ishida</title>
+  <script src="../../assets/js/theme.js"></script>
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [["$", "$"], ["\\(", "\\)"]],
+        displayMath: [["$$", "$$"], ["\\[", "\\]"]]
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container site-header-inner">
+      <div class="site-brand">
+        <p class="site-title">Hirone Ishida</p>
+        <p class="site-subtitle">Low-Rank Matrix Approximation</p>
+      </div>
+    </div>
+  </header>
+
+  <nav class="site-nav" aria-label="主要ページ">
+    <div class="container site-nav-inner">
+      <ul>
+        <li><a href="../index.html">ホーム</a></li>
+        <li><a href="../cv.html">CV</a></li>
+        <li><a href="../research.html" class="active">研究概要</a></li>
+        <li><a href="../outputs.html">業績</a></li>
+        <li><a href="../hobby.html">趣味の部屋</a></li>
+      </ul>
+      <div class="header-actions">
+        <nav class="lang-switch" aria-label="Language switch">
+          <a href="matrix-low-rank.html" class="active" aria-current="page" lang="ja">JA</a>
+          <a href="../../en/index.html" lang="en">EN</a>
+        </nav>
+        <div class="theme-switch" role="group" aria-label="表示モード切替">
+          <button type="button" class="active" data-theme-value="light" aria-pressed="true">Light</button>
+          <button type="button" data-theme-value="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container page-content">
+    <p class="breadcrumb"><a href="../research.html">研究概要</a><span>/</span>行列の低ランク近似</p>
+
+    <div class="article-layout">
+      <section class="section-block">
+        <p class="section-label">Method</p>
+        <h1>行列の低ランク近似</h1>
+        <p class="article-lead">
+          テンソルネットワークの基本は，「大きな対象を小さなパーツの積で表す」です．
+          そのもっとも単純な例が，行列に対する行列分解(特異値分解)と低ランク近似です．
+          行列分解とは，ある行列$A$を以下のような行列の積で表す方法です．
+        </p>
+        <div class="math-block">
+          $$
+          A = BCD\cdots
+          $$
+        </div>
+        <p>
+          また，低ランク近似とは，行列を，より小さいランクの行列で近似することです．低ランク近似により，行列を保存しておくためのメモリコストを削減できます．
+          行列分解の具体的な方法は，QR分解，LU分解をはじめ多く知られています．ここでは，分解により低ランク近似することを念頭に置き，特異値分解を用いて説明します．
+        </p>
+        <ul class="mini-nav" aria-label="関連ページ">
+          <li><a href="matrix-low-rank.html" class="active" aria-current="page">行列の低ランク近似</a></li>
+          <li><a href="tensor-decomposition.html">テンソル分解</a></li>
+          <li><a href="tensor-network.html">テンソルネットワーク</a></li>
+          <li><a href="tensor-train.html">Tensor Train</a></li>
+          <li><a href="qtt.html">QTT</a></li>
+          <li><a href="matrix-cross-interpolation.html">Matrix Cross Interpolation</a></li>
+          <li><a href="tci.html">TCI</a></li>
+        </ul>
+      </section>
+
+      <section class="section-block">
+        <h2>特異値分解</h2>
+        <p>
+          一般の複素行列 $A \in \mathbb{C}^{m \times n}$ に対して，
+          次の関係を満たす非負実数 $\sigma_i$ とベクトル $\mathbf{u}_i, \mathbf{v}_i$ を考えます．
+          $\sigma_i$ を特異値，$\mathbf{u}_i, \mathbf{v}_i$ をそれぞれ左特異ベクトル，右特異ベクトルと呼びます．
+        </p>
+        <div class="math-block">
+          $$
+          \begin{cases}
+          A\mathbf{v}_i = \sigma_i \mathbf{u}_i,\\
+          A^\dagger \mathbf{u}_i = \sigma_i \mathbf{v}_i.
+          \end{cases}
+          $$
+        </div>
+        <p>
+          特異値は大きい順に
+          $\sigma_1 \geq \sigma_2 \geq \cdots \geq \sigma_r \gt 0$
+          と並べることにします．ここで $r=\mathrm{rank}(A)$ です．
+          ここではランク落ちしていないサイズ $m \lt n$の横長行列を例にし， $r=m$ とします．
+        </p>
+        <div class="math-block">
+          $$
+          U = (\mathbf{u}_1,\dots,\mathbf{u}_r),
+          \qquad
+          V = (\mathbf{v}_1,\dots,\mathbf{v}_r),
+          \qquad
+          \Sigma = \mathrm{diag}(\sigma_1,\dots,\sigma_r)
+          $$
+        </div>
+        <p>
+          上記のように，左特異ベクトルを列に並べた行列を $U \in \mathbb{C}^{m \times r}$，
+          右特異ベクトルを列に並べた行列を $V \in \mathbb{C}^{n \times r}$ とすると，
+          行列 $A$ は次のように分解できます．
+        </p>
+        <div class="math-block">
+          $$
+          A = U\Sigma V^\dagger
+          $$
+        </div>
+        <p>
+          ここで $\Sigma \in \mathbb{R}^{r \times r}$ であり，
+          $V^\dagger \in \mathbb{C}^{r \times n}$ です．
+          したがって，右辺は
+          $(m \times r)(r \times r)(r \times n)$ の積になっています．
+          これを特異値分解（Singular Value Decomposition: SVD）と呼びます．
+          成分で書くと，
+        </p>
+        <div class="math-block">
+          $$
+          A
+          =
+          \sum_{i=1}^{r}
+          \sigma_i \mathbf{u}_i \mathbf{v}_i^\dagger
+          $$
+        </div>
+        <p>
+          となります．つまり，行列 $A$ はランク 1 行列
+          $\mathbf{u}_i \mathbf{v}_i^\dagger$ の和として表されています．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>SVDによる低ランク近似</h2>
+        <p>
+          特異値が大きい項ほど，行列 $A$ の中で支配的な寄与を持ちます．
+          そのため，十分小さい特異値に対応する項を捨てることで，
+          元の行列をより低いランクの行列で近似できます．
+          $\chi (\lt r)$ 個の特異値だけを残すと，
+        </p>
+        <div class="math-block">
+          $$
+          \widetilde{A}_{\chi}
+          =
+          \sum_{i=1}^{\chi}
+          \sigma_i \mathbf{u}_i \mathbf{v}_i^\dagger
+          =
+          \widetilde{U}\widetilde{\Sigma}\widetilde{V}^\dagger
+          $$
+        </div>
+        <p>
+          というランク $\chi$ の近似行列が得られます．
+          分解後の行列サイズは，
+          $\widetilde{U} \in \mathbb{C}^{m \times \chi}$，
+          $\widetilde{\Sigma} \in \mathbb{R}^{\chi \times \chi}$，
+          $\widetilde{V}^{\dagger} \in \mathbb{C}^{\chi \times n}$ です．
+        </p>
+
+        <figure class="svd-figure">
+          <div class="svd-row" aria-hidden="true">
+            <span class="svd-matrix-label">A</span>
+            <span class="svd-symbol">=</span>
+            <span class="svd-box svd-box-u-r">U</span>
+            <span class="svd-box svd-box-sigma-r">Σ</span>
+            <span class="svd-box svd-box-v-r">V<sup>†</sup></span>
+          </div>
+          <div class="svd-row" aria-hidden="true">
+            <span class="svd-matrix-label">Ã</span>
+            <span class="svd-symbol">≈</span>
+            <span class="svd-box svd-box-u-chi">Ũ</span>
+            <span class="svd-box svd-box-sigma-chi">Σ̃</span>
+            <span class="svd-box svd-box-v-chi">Ṽ<sup>†</sup></span>
+          </div>
+          <figcaption>
+            SVD による低ランク近似のイメージ．横長かつフルランクな行列を想定しているため，上段では $r=m$ であり，$U$ と $\Sigma$ は正方形に描いている．
+            下段では $\chi \lt r$ 個の特異値だけを残している．
+          </figcaption>
+        </figure>
+
+        <p>
+          SVD による切り捨ては，フロベニウスノルムの意味で最良の低ランク近似を与えることが知られています(Eckart-Young-Mirskyの定理)．
+          すなわち，ランクが $\chi$ 以下の行列 $B$ の中で，
+          $\|A-B\|_{\mathrm{F}}$ を最小にするものが $\widetilde{A}_{\chi}$ です．
+          その誤差は，捨てた特異値の平方和で表されます．
+        </p>
+        <div class="math-block">
+          $$
+          \|A-\widetilde{A}_{\chi}\|_{\mathrm{F}}^2
+          =
+          \sum_{i=\chi+1}^{r}\sigma_i^2.
+          $$
+        </div>
+        また，$m\times n$ 行列をそのまま保存すると必要な要素数は $mn$ ですが，
+          $\chi$ 個の特異値だけを残す近似では，
+          おおよそ $\chi(m+n+1)$ 個の要素を保存すればよくなります．
+          そのため，
+        </p>
+        <div class="math-block">
+          $$
+          mn \gt \chi(m+n+1)
+          $$
+        </div>
+        <p>
+          が成り立つ範囲では，低ランク近似によってデータ量を削減できます．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>テンソルネットワークへの接続</h2>
+        <p>
+          テンソルネットワークでは，高次元テンソルを適切に行列化し，
+          SVD のような低ランク近似を繰り返し使うことで，
+          複数の小さなテンソルの縮約として表します．
+          行列で見た「重要な成分だけを残す」という考え方が，テンソルネットワークの基本的な圧縮原理になっています．
+        </p>
+        <div class="note-box">
+          <p>
+            次は <a href="tensor-decomposition.html">テンソル分解</a> のページで，行列の低ランク近似を高階テンソルへ拡張します．
+          </p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2026 Hirone Ishida</p>
+    </div>
+  </footer>
+</body>
+</html>

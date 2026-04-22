@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tensor Train | 研究 | Hirone Ishida</title>
+  <script src="../../assets/js/theme.js"></script>
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [["$", "$"], ["\\(", "\\)"]],
+        displayMath: [["$$", "$$"], ["\\[", "\\]"]]
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container site-header-inner">
+      <div class="site-brand">
+        <p class="site-title">Hirone Ishida</p>
+        <p class="site-subtitle">Tensor Train</p>
+      </div>
+    </div>
+  </header>
+
+  <nav class="site-nav" aria-label="主要ページ">
+    <div class="container site-nav-inner">
+      <ul>
+        <li><a href="../index.html">ホーム</a></li>
+        <li><a href="../cv.html">CV</a></li>
+        <li><a href="../research.html" class="active">研究概要</a></li>
+        <li><a href="../outputs.html">業績</a></li>
+        <li><a href="../hobby.html">趣味の部屋</a></li>
+      </ul>
+      <div class="header-actions">
+        <nav class="lang-switch" aria-label="Language switch">
+          <a href="tensor-train.html" class="active" aria-current="page" lang="ja">JA</a>
+          <a href="../../en/index.html" lang="en">EN</a>
+        </nav>
+        <div class="theme-switch" role="group" aria-label="表示モード切替">
+          <button type="button" class="active" data-theme-value="light" aria-pressed="true">Light</button>
+          <button type="button" data-theme-value="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container page-content">
+    <p class="breadcrumb"><a href="../research.html">研究概要</a><span>/</span>Tensor Train</p>
+
+    <div class="article-layout">
+      <section class="section-block">
+        <p class="section-label">Method</p>
+        <h1>Tensor Train</h1>
+        <p class="article-lead">
+          Tensor Train (TT) は，テンソルネットワークの中でも基本的な 1 次元鎖状の表現です．
+          高階テンソルを 3 階テンソルの列として表すことで，
+          低ランク構造を持つ高次元データを少ないパラメータで扱える可能性があります．
+          DMRGの文脈ではMatrix Product State (MPS)と呼ばれ，波動関数を表すことが多いのですが，ここではより一般的なテンソルを対象とするため，Tensor Trainという名称を使います．
+        </p>
+        <ul class="mini-nav" aria-label="関連ページ">
+          <li><a href="matrix-low-rank.html">行列の低ランク近似</a></li>
+          <li><a href="tensor-decomposition.html">テンソル分解</a></li>
+          <li><a href="tensor-network.html">テンソルネットワーク</a></li>
+          <li><a href="tensor-train.html" class="active" aria-current="page">Tensor Train</a></li>
+          <li><a href="qtt.html">QTT</a></li>
+          <li><a href="matrix-cross-interpolation.html">Matrix Cross Interpolation</a></li>
+          <li><a href="tci.html">TCI</a></li>
+        </ul>
+      </section>
+
+      <section class="section-block">
+        <h2>TT形式</h2>
+        <p>
+          $R$ 個のインデックス
+          $\boldsymbol{\sigma}=(\sigma_1,\sigma_2,\dots,\sigma_R)$ を持つテンソル
+          $F_{\boldsymbol{\sigma}}$ を考えます．
+          TT形式では，このテンソルを次のように 3 階テンソルの積として表します
+          <a class="citation" href="#ref-oseledets2011-tt">[1]</a>．
+        </p>
+        <div class="math-block">
+          $$
+          F_{\sigma_1\sigma_2\cdots\sigma_R}
+          =
+          \sum_{\alpha_1,\dots,\alpha_{R-1}}
+          F^{(1)}_{\sigma_1\alpha_1}
+          F^{(2)}_{\alpha_1\sigma_2\alpha_2}
+          \cdots
+          F^{(R)}_{\alpha_{R-1}\sigma_R}.
+          $$
+        </div>
+        <p>
+          各 $F^{(\ell)}$ は TTコアと呼ばれます．
+          中間のコアは
+          $F^{(\ell)}_{\alpha_{\ell-1}\sigma_\ell\alpha_\ell}
+          \in\mathbb{C}^{\chi_{\ell-1}\times d_\ell\times\chi_\ell}$
+          という形を持ちます．
+          $\sigma_\ell$ はローカルインデックス，$\alpha_\ell$ は隣のコアをつなぐボンドインデックスです．
+          ボンドインデックスの次元 $\chi_\ell$ をボンド次元と呼び，
+          $\chi=\max_\ell\chi_\ell$ を TT の代表的なボンド次元として扱うことがあります．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>波動関数の例</h2>
+        <p>
+          1 次元状にスピン $s_i$ が並ぶ系の状態は，基底
+          $\mathopen{|}s_1,s_2,\dots,s_R\rangle$ を用いて次のように展開できます．
+        </p>
+        <div class="math-block">
+          $$
+          \mathopen{|}\Psi\rangle
+          =
+          \sum_{s_1s_2\cdots s_R}
+          \psi_{s_1s_2\cdots s_R}
+          \mathopen{|}s_1,s_2,\cdots,s_R\rangle.
+          $$
+        </div>
+        <p>
+          係数 $\psi_{s_1s_2\cdots s_R}$ はスピンインデックスの関数であり，
+          そのまま保存すると系の長さ $R$ に対して指数関数的に大きなメモリが必要です．
+          この係数テンソルを TT，物理の言葉では MPS，として近似できれば，
+          自由度を大きく削減できます．
+        </p>
+        <div class="math-block">
+          $$
+          \psi_{s_1s_2\cdots s_R}
+          \simeq
+          \sum_{\alpha_1,\dots,\alpha_{R-1}}
+          \psi^{(1)}_{s_1\alpha_1}
+          \psi^{(2)}_{\alpha_1s_2\alpha_2}
+          \cdots
+          \psi^{(R)}_{\alpha_{R-1}s_R}.
+          $$
+        </div>
+        <p>
+          作用素であるハミルトニアンも，1 次元鎖状のテンソルネットワークとして表すことがあります．
+          この表現は Matrix Product Operator (MPO) と呼ばれます．
+          MPS と MPO を用いると，固有値問題
+          $\mathcal{H}\lvert\Psi\rangle=E\lvert\Psi\rangle$ や
+          エネルギー期待値
+          $E=\langle\Psi\rvert\mathcal{H}\lvert\Psi\rangle/\langle\Psi|\Psi\rangle$
+          をテンソルネットワークの縮約として扱えます．
+        </p>
+        <figure class="article-figure is-seventy">
+          <img src="../../assets/images/research/TTandMPO_eigeneq.png" alt="Tensor Train，Matrix Product Operator，MPS形式で表したハミルトニアンの固有値問題">
+          <figcaption>Tensor Train，MPO，およびテンソルネットワークで表した固有値問題．</figcaption>
+        </figure>
+      </section>
+
+      <section class="section-block">
+        <h2>TT分解</h2>
+        <p>
+          高階テンソルから TT を構成するには，
+          <a href="tensor-decomposition.html">テンソル分解</a> で見た
+          「インデックスを結合して行列化し，SVDで分解する」操作を端から順に繰り返します．
+          まず左端のインデックスだけを残し，残りをまとめて行列として見ます．
+        </p>
+        <div class="math-block">
+          $$
+          F_{\sigma_1\sigma_2\cdots\sigma_R}
+          =
+          F_{\sigma_1,(\sigma_2\sigma_3\cdots\sigma_R)}
+          \simeq
+          \sum_{\alpha_1=1}^{\chi_1}
+          F^{(1)}_{\sigma_1\alpha_1}
+          F^{[1]}_{\alpha_1,(\sigma_2\sigma_3\cdots\sigma_R)}.
+          $$
+        </div>
+        <p>
+          次に，右側に残ったテンソルのインデックスを一度戻し，
+          $(\alpha_1,\sigma_2)$ を左側にまとめて再び行列化します．
+        </p>
+        <div class="math-block">
+          $$
+          F^{[1]}_{\alpha_1,(\sigma_2\sigma_3\cdots\sigma_R)}
+          \longrightarrow
+          F^{[1]}_{(\alpha_1\sigma_2),(\sigma_3\cdots\sigma_R)}.
+          $$
+        </div>
+        <p>
+          この行列に対して再び SVD と低ランク近似を行います．
+          これを右端まで繰り返すことで，TT形式が得られます．
+        </p>
+        <div class="math-block">
+          $$
+          F_{\sigma_1\sigma_2\cdots\sigma_R}
+          \simeq
+          \sum_{\alpha_1,\dots,\alpha_{R-1}}
+          F^{(1)}_{\sigma_1\alpha_1}
+          F^{(2)}_{\alpha_1\sigma_2\alpha_2}
+          \cdots
+          F^{(R)}_{\alpha_{R-1}\sigma_R}.
+          $$
+        </div>
+        <figure class="article-figure is-wide">
+          <img src="../../assets/images/research/TT_decomposition.png" alt="高階テンソルからTensor Trainを構成する逐次分解の図">
+          <figcaption>高階テンソルから Tensor Train を構成する操作．インデックス結合と行列分解を端から順に繰り返します．</figcaption>
+        </figure>
+      </section>
+
+      <section class="section-block">
+        <h2>要素数と低ランク構造</h2>
+        <p>
+          分解前のテンソルのローカル次元をすべて $d$ とすると，
+          元のテンソルの要素数は $d^R$ です．
+          これは $R$ に対して指数関数的に増大します．
+          一方，TT形式で保存する要素数は各コアの要素数の和です．
+        </p>
+        <div class="math-block">
+          $$
+          \sum_{\ell=1}^{R}\chi_{\ell-1}d_\ell\chi_\ell
+          \lesssim
+          R d \chi^2
+          \qquad
+          (\chi_0=\chi_R=1).
+          $$
+        </div>
+        <p>
+          もし十分小さいボンド次元 $\chi$ でよい近似が得られるなら，
+          必要な要素数は $R$ に対してほぼ線形に増えます．
+          これが TT を使う主な利点です．
+          ただし，どんなテンソルでも小さい $\chi$ で表せるわけではありません．
+          特異値が速く減衰し，小さなボンド次元で情報を保てるとき，
+          そのテンソルは低ランク構造を持つと言えます．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>TT形式での演算</h2>
+        <p>
+          TT形式のまま演算できることも重要です．
+          たとえば TT を定数 $\lambda$ 倍するだけなら，どれか 1 つの TTコアを $\lambda$ 倍すればよく，
+          ボンド次元は変わりません．
+        </p>
+        <div class="math-block">
+          $$
+          \lambda F_{\mathrm{TT}}
+          =
+          (\lambda F^{(1)})F^{(2)}\cdots F^{(R)}.
+          $$
+        </div>
+        <p>
+          2つのTT同士の和や要素積も，圧縮されたTT形式のままで実行可能です．しかし，定数倍の時とは異なりボンド次元は一般に増大します．具体的な操作やボンド次元の変化は<a class="citation" href="#ref-takahashi2025-tt">[4]</a>を参照ください．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>参考文献</h2>
+        <p>
+          このページは，修士論文の第3章をWeb向けに整理したものです．
+          修士論文PDFは <a href="../../assets/docs/master_thesis.pdf" target="_blank" rel="noreferrer">こちら</a> から確認できます．
+        </p>
+        <ol class="reference-list">
+          <li id="ref-oseledets2011-tt">I. V. Oseledets, “Tensor-Train Decomposition,” SIAM Journal on Scientific Computing 33, 2295 (2011).</li>
+          <li id="ref-white1992-tt">S. R. White, “Density matrix formulation for quantum renormalization groups,” Physical Review Letters 69, 2863 (1992).</li>
+          <li id="ref-ostlund1995-tt">S. Ostlund and S. Rommer, “Thermodynamic limit of density matrix renormalization,” Physical Review Letters 75, 3537 (1995).</li>
+          <li id="ref-takahashi2025-tt">H. Takahashi, R. Sakurai, and H. Shinaoka, SciPost Physics 18, 007 (2025).</li>
+        </ol>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2026 Hirone Ishida</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>テンソル分解 | 研究 | Hirone Ishida</title>
+  <script src="../../assets/js/theme.js"></script>
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [["$", "$"], ["\\(", "\\)"]],
+        displayMath: [["$$", "$$"], ["\\[", "\\]"]]
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container site-header-inner">
+      <div class="site-brand">
+        <p class="site-title">Hirone Ishida</p>
+        <p class="site-subtitle">Tensor Decomposition</p>
+      </div>
+    </div>
+  </header>
+
+  <nav class="site-nav" aria-label="主要ページ">
+    <div class="container site-nav-inner">
+      <ul>
+        <li><a href="../index.html">ホーム</a></li>
+        <li><a href="../cv.html">CV</a></li>
+        <li><a href="../research.html" class="active">研究概要</a></li>
+        <li><a href="../outputs.html">業績</a></li>
+        <li><a href="../hobby.html">趣味の部屋</a></li>
+      </ul>
+      <div class="header-actions">
+        <nav class="lang-switch" aria-label="Language switch">
+          <a href="tensor-decomposition.html" class="active" aria-current="page" lang="ja">JA</a>
+          <a href="../../en/index.html" lang="en">EN</a>
+        </nav>
+        <div class="theme-switch" role="group" aria-label="表示モード切替">
+          <button type="button" class="active" data-theme-value="light" aria-pressed="true">Light</button>
+          <button type="button" data-theme-value="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container page-content">
+    <p class="breadcrumb"><a href="../research.html">研究概要</a><span>/</span>テンソル分解</p>
+
+    <div class="article-layout">
+      <section class="section-block">
+        <p class="section-label">Method</p>
+        <h1>テンソル分解</h1>
+        <p class="article-lead">
+          テンソル分解は，高階テンソルをより小さなテンソルの縮約として表す操作です．
+          行列の低ランク近似を多次元配列へ拡張するための基本的な手続きであり，
+          テンソルネットワークを構成するための入口になります．
+        </p>
+        <ul class="mini-nav" aria-label="関連ページ">
+          <li><a href="matrix-low-rank.html">行列の低ランク近似</a></li>
+          <li><a href="tensor-decomposition.html" class="active" aria-current="page">テンソル分解</a></li>
+          <li><a href="tensor-network.html">テンソルネットワーク</a></li>
+          <li><a href="tensor-train.html">Tensor Train</a></li>
+          <li><a href="qtt.html">QTT</a></li>
+          <li><a href="matrix-cross-interpolation.html">Matrix Cross Interpolation</a></li>
+          <li><a href="tci.html">TCI</a></li>
+        </ul>
+      </section>
+
+      <section class="section-block">
+        <h2>考える問題</h2>
+        <p>
+          例として，4 階テンソル
+          $T_{ijkl}\in\mathbb{R}^{d_i\times d_j\times d_k\times d_l}$ を，
+          2 つの 3 階テンソルへ分解することを考えます．
+          目標は次のような形です．
+        </p>
+        <div class="math-block">
+          $$
+          T_{ijkl}
+          \simeq
+          \sum_{\alpha=1}^{\chi}
+          A_{ij\alpha}B_{\alpha kl}.
+          $$
+        </div>
+        <p>
+          新しく現れるインデックス $\alpha$ は，2 つのテンソルをつなぐ仮想的なインデックスです．
+          その次元 $\chi$ はボンド次元と呼ばれ，どれだけ多くの情報を分解後のテンソル間に残すかを決めます．
+        </p>
+        <figure class="article-figure is-wide">
+          <img src="../../assets/images/research/tensor_decomposition.png" alt="4階テンソルを行列化し，SVDで2つの3階テンソルへ分解する図">
+          <figcaption>テンソル分解の流れ．インデックスを結合して行列化し，行列分解を行った後，インデックスの結合を解きます．</figcaption>
+        </figure>
+      </section>
+
+      <section class="section-block">
+        <h2>インデックスの結合</h2>
+        <p>
+          テンソル分解では，まず高階テンソルを行列に並べ直します．
+          複数のインデックスをまとめて 1 つの大きなインデックスにする操作は，
+          インデックスの結合，あるいは unfolding と呼ばれます．
+          ここでは $(i,j)$ と $(k,l)$ をそれぞれ結合して，
+          4 階テンソルを行列 $T_{(ij)(kl)}$ として見ます．
+        </p>
+        <div class="math-block">
+          $$
+          T_{ijkl}
+          \in
+          \mathbb{R}^{d_i\times d_j\times d_k\times d_l}
+          \longrightarrow
+          T_{(ij)(kl)}
+          \in
+          \mathbb{R}^{d_i d_j\times d_k d_l}.
+          $$
+        </div>
+        <p>
+          これは要素を捨てる操作ではなく，多次元配列の要素を 2 次元的に並べ直す操作です．
+          たとえばインデックスを 1 から数えるなら，次のような対応を使えます．
+        </p>
+        <div class="math-block">
+          $$
+          \begin{cases}
+          (ij) = (i-1)d_j + j,\\
+          (kl) = (k-1)d_l + l.
+          \end{cases}
+          $$
+        </div>
+        <p>
+          より多くのインデックスを結合する場合も，同じ考え方で
+          多重インデックスと 1 つの大きなインデックスを対応させます
+          <a class="citation" href="#ref-dolgov2019">[1]</a>．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>行列分解を行う</h2>
+        <p>
+          次に，得られた行列 $T_{(ij)(kl)}$ に対して行列分解を行います．
+          ここでは <a href="matrix-low-rank.html">行列の低ランク近似</a> と同じく，SVD を用いて説明します．
+        </p>
+        <div class="math-block">
+          $$
+          T_{(ij)(kl)}
+          =
+          \sum_{\alpha=1}^{D}
+          U_{(ij)\alpha}\sigma_{\alpha}V^\dagger_{\alpha(kl)}.
+          $$
+        </div>
+        <p>
+          $D$ は非ゼロ特異値の数です．
+          特異値を大きい順に並べ，重要度の低い後ろの特異値を捨てると，
+          ランク $\chi$ の近似が得られます．
+        </p>
+        <div class="math-block">
+          $$
+          T_{(ij)(kl)}
+          \simeq
+          \sum_{\alpha=1}^{\chi}
+          \widetilde{U}_{(ij)\alpha}
+          \sigma_{\alpha}
+          \widetilde{V}^\dagger_{\alpha(kl)}
+          \qquad
+          (\chi \lt D).
+          $$
+        </div>
+        <p>
+          ここで
+          $A_{(ij)\alpha}=\widetilde{U}_{(ij)\alpha}$，
+          $B_{\alpha(kl)}=\sigma_{\alpha}\widetilde{V}^\dagger_{\alpha(kl)}$
+          と置き直すと，行列は 2 つの小さな行列の積として表せます．
+        </p>
+        <div class="math-block">
+          $$
+          T_{(ij)(kl)}
+          \simeq
+          \sum_{\alpha=1}^{\chi}
+          A_{(ij)\alpha}B_{\alpha(kl)}.
+          $$
+        </div>
+      </section>
+
+      <section class="section-block">
+        <h2>テンソルへ戻す</h2>
+        <p>
+          最後に，結合していたインデックス $(ij)$ と $(kl)$ を元のインデックスへ戻します．
+          これにより，4 階テンソルを 2 つの 3 階テンソルの縮約として表すことができます．
+        </p>
+        <div class="math-block">
+          $$
+          T_{ijkl}
+          \simeq
+          \sum_{\alpha=1}^{\chi}
+          A_{ij\alpha}B_{\alpha kl}.
+          $$
+        </div>
+        <p>
+          この式は低ランク近似を含むため，厳密な等号ではなく近似です．
+          誤差は捨てた特異値に由来します．
+          $\chi$ が十分小さくてもよい近似が得られる場合には，
+          元のテンソルを少ないパラメータで表現できます．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>テンソルネットワークへの接続</h2>
+        <p>
+          上の分解を繰り返すと，高階テンソルを複数の小さなテンソルの列や網目として表せます．
+          これが <a href="tensor-network.html">テンソルネットワーク</a> の構成に直接つながります．
+          特に 1 次元鎖状に分解していくと <a href="tensor-train.html">Tensor Train (TT)</a> 形式が得られます
+          <a class="citation" href="#ref-oseledets2011-decomp">[2]</a>．
+        </p>
+        <div class="note-box">
+          <p>
+            ここでは SVD を使いましたが，目的によっては QR 分解や LU 分解を用いることもあります．
+            低ランク近似をしたい場合は SVD が自然ですが，テンソルネットワークの正規化や掃き出し計算では
+            QR 分解が便利な場面もあります．
+          </p>
+        </div>
+      </section>
+
+      <section class="section-block">
+        <h2>参考文献</h2>
+        <p>
+          このページは，修士論文の第3章をWeb向けに整理したものです．
+          修士論文PDFは <a href="../../assets/docs/master_thesis.pdf" target="_blank" rel="noreferrer">こちら</a> から確認できます．
+        </p>
+        <ol class="reference-list">
+          <li id="ref-dolgov2019">S. Dolgov and R. Scheichl, SIAM/ASA Journal on Uncertainty Quantification 7, 260 (2019).</li>
+          <li id="ref-oseledets2011-decomp">I. V. Oseledets, “Tensor-Train Decomposition,” SIAM Journal on Scientific Computing 33, 2295 (2011).</li>
+        </ol>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2026 Hirone Ishida</p>
+    </div>
+  </footer>
+</body>
+</html>

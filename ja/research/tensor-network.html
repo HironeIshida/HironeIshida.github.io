@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>テンソルネットワーク | 研究 | Hirone Ishida</title>
+  <script src="../../assets/js/theme.js"></script>
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [["$", "$"], ["\\(", "\\)"]],
+        displayMath: [["$$", "$$"], ["\\[", "\\]"]]
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container site-header-inner">
+      <div class="site-brand">
+        <p class="site-title">Hirone Ishida</p>
+        <p class="site-subtitle">Tensor Network</p>
+      </div>
+    </div>
+  </header>
+
+  <nav class="site-nav" aria-label="主要ページ">
+    <div class="container site-nav-inner">
+      <ul>
+        <li><a href="../index.html">ホーム</a></li>
+        <li><a href="../cv.html">CV</a></li>
+        <li><a href="../research.html" class="active">研究概要</a></li>
+        <li><a href="../outputs.html">業績</a></li>
+        <li><a href="../hobby.html">趣味の部屋</a></li>
+      </ul>
+      <div class="header-actions">
+        <nav class="lang-switch" aria-label="Language switch">
+          <a href="tensor-network.html" class="active" aria-current="page" lang="ja">JA</a>
+          <a href="../../en/index.html" lang="en">EN</a>
+        </nav>
+        <div class="theme-switch" role="group" aria-label="表示モード切替">
+          <button type="button" class="active" data-theme-value="light" aria-pressed="true">Light</button>
+          <button type="button" data-theme-value="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container page-content">
+    <p class="breadcrumb"><a href="../research.html">研究概要</a><span>/</span>テンソルネットワーク</p>
+
+    <div class="article-layout">
+      <section class="section-block">
+        <p class="section-label">Method</p>
+        <h1>テンソルネットワーク</h1>
+        <p class="article-lead">
+          テンソルネットワークは，多自由度の量子状態や高次元関数を，
+          小さなテンソルを縮約したネットワークとして表現する考え方です．
+          巨大な配列をそのまま持つ代わりに，構造(関数の空間依存性)を活かして圧縮された形で扱えることが大きな利点です．
+        </p>
+        <ul class="mini-nav" aria-label="関連ページ">
+          <li><a href="tensor-network.html" class="active" aria-current="page">テンソルネットワーク</a></li>
+          <li><a href="matrix-low-rank.html">行列の低ランク近似</a></li>
+          <li><a href="tensor-decomposition.html">テンソル分解</a></li>
+          <li><a href="tensor-train.html">Tensor Train</a></li>
+          <li><a href="qtt.html">QTT</a></li>
+          <li><a href="matrix-cross-interpolation.html">Matrix Cross Interpolation</a></li>
+          <li><a href="tci.html">TCI</a></li>
+        </ul>
+      </section>
+
+      <section class="section-block">
+        <h2>低ランク近似との関係</h2>
+        <p>
+          テンソルネットワークの背景には，行列の低ランク近似を多次元テンソルへ拡張するという見方があります．
+          まず SVD と行列の圧縮を確認したい場合は，
+          <a href="matrix-low-rank.html">行列の低ランク近似</a> のページにまとめています．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>なぜテンソルネットワークか</h2>
+        <p>
+          たとえば $N$ 個の自由度を持つ波動関数 $\psi(\sigma_1,\sigma_2,\dots,\sigma_N)$ を考えます．
+          各 $\sigma_i$ が $\pm 1$ の値を取るだけでも，
+          この波動関数をそのまま保持するには $2^N$ 個の成分が必要です．
+          これは自由度数 $N$ に対して指数関数的に増大します．
+        </p>
+        <p>
+          テンソルネットワークでは，この巨大なテンソルを適切に行列化し，SVD のような低ランク近似を繰り返し使うことで，
+          複数の小さなテンソルの縮約として表します．
+          行列の低ランク近似で現れた「重要な成分だけを残す」という考え方が，
+          テンソルネットワークの基本的な情報圧縮のアイデアです．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>テンソルの定義とダイアグラム表現</h2>
+        <p>
+          ここでいうテンソルは，離散変数の多変数関数，あるいは多次元配列のことです．
+          $k$ 個のインデックス $i_1,i_2,\dots,i_k$ を指定すると値がひとつ定まる離散変数関数を，
+          $k$ 階テンソルと呼びます．たとえばスカラー，ベクトル，行列は，それぞれ 0 階，1 階，2 階のテンソルです．
+        </p>
+        <div class="math-block">
+          $$
+          T_{i_1 i_2 \cdots i_k}
+          \in
+          \mathbb{A}^{d_1 \times d_2 \times \cdots \times d_k}.
+          $$
+        </div>
+        <p>
+          ここで $d_\ell$ はインデックス $i_\ell$ が取りうる値の数を表します．
+          テンソルネットワークでは，テンソルを丸や四角形などのノードで表し，
+          インデックスをノードから伸びる線として表すダイアグラム表現をよく使います．
+          インデックスが増えるとテンソルを成分表示した数式は急に読みにくくなりますが，ダイアグラムを見ると
+          「どのテンソルがどのインデックスで縮約を取られているか」が視覚的に分かります．
+        </p>
+        <figure class="article-figure is-medium">
+          <img src="../../assets/images/research/tensordiagram.png" alt="スカラー，ベクトル，行列，3階テンソルのダイアグラム表現">
+          <figcaption>テンソルのダイアグラム表現．テンソルをノード，インデックスを線として表します．</figcaption>
+        </figure>
+      </section>
+
+      <section class="section-block">
+        <h2>縮約</h2>
+        <p>
+          テンソル同士が共通のインデックスを持つとき，そのインデックスについて和を取る操作を縮約と呼びます．
+          たとえば 3 階テンソル $A_{ijk}$ と $B_{klm}$ の共通インデックス $k$ を縮約すると，
+          次のような 4 階テンソル $D_{ijlm}$ が得られます．
+        </p>
+        <div class="math-block">
+          $$
+          D_{ijlm} = \sum_{k} A_{ijk} B_{klm}.
+          $$
+        </div>
+        <p>
+          ダイアグラムでは，縮約するインデックスを 1 本の線でつないで表します．
+          つながっていない線は縮約後に残るインデックスです．
+        </p>
+        <figure class="article-figure is-half">
+          <img src="../../assets/images/research/tensor_contraction.png" alt="2つのテンソルを共通インデックスで縮約する図">
+          <figcaption>テンソル同士の縮約．共通するインデックスについて和を取る操作を，線でつないで表します．</figcaption>
+        </figure>
+        <p>
+          行列積もトレースも，テンソル同士の縮約の特別な場合として見ることができます．
+        </p>
+        <div class="math-block">
+          $$
+          \mathrm{Tr}\,A
+          =
+          \sum_i A_{ii}
+          =
+          \sum_{ij} A_{ij}\delta_{ij}.
+          $$
+        </div>
+      </section>
+
+      <section class="section-block">
+        <h2>縮約順序と計算量</h2>
+        <p>
+          複数のテンソルの縮約で表現されたテンソルの成分を計算するためには，実際に和(縮約)を実行する必要があります．
+          この際，どの順番で縮約するかが重要です．
+          同じ最終結果を与えるネットワークでも，途中で現れるテンソルのサイズが変わるため，
+          縮約順序によって計算量が大きく変わります．
+        </p>
+        <p>
+          たとえば全てのインデックスの次元を $\chi$ として，次の縮約を考えます．
+        </p>
+        <div class="math-block">
+          $$
+          S_{ijk}
+          =
+          \sum_{\alpha\beta\gamma}
+          A_{i\alpha\beta}B_{\beta\gamma}C_{jk\gamma\alpha}.
+          $$
+        </div>
+        <p>
+          先に $A$ と $B$ を縮約する場合は全体でおよそ $\mathcal{O}(\chi^5)$，
+          先に $A$ と $C$ を縮約する場合はおよそ $\mathcal{O}(\chi^6)$ になります．
+          このように，テンソルネットワークでは「ネットワークをどう分解して計算するか」も本質的な問題になります．
+          一般には最適な縮約順序を見つけること自体が難しいため，
+          実用上はできるだけ計算量の小さい準最適な順序を探すことが重要です．
+        </p>
+        <figure class="article-figure is-wide">
+          <img src="../../assets/images/research/calc_cost.png" alt="縮約順序による計算量の違い">
+          <figcaption>縮約順序による計算量の違い．同じネットワークでも，途中で作るテンソルの大きさが変わります．</figcaption>
+        </figure>
+      </section>
+
+      <section class="section-block">
+        <h2>テンソルネットワーク</h2>
+        <p>
+          複数のテンソルを縮約して形成されるネットワークを，テンソルネットワークと呼びます．
+          様々なネットワーク構造があり，1 次元鎖状の <a href="tensor-train.html">Tensor Train (TT)</a>，
+          物理では同じ構造を指すことが多い Matrix Product State (MPS)，2 次元格子状の PEPS，
+          階層的な木構造を持つ TTN などが代表例です．
+          TT は数値線形代数の文脈で体系化され
+          <a class="citation" href="#ref-oseledets2011">[1]</a>，
+          MPS は DMRG と密接に関係する表現として発展してきました
+          <a class="citation" href="#ref-white1992">[2]</a>
+          <a class="citation" href="#ref-ostlund1995">[3]</a>．
+          どの構造が適しているかは，対象とする問題の相関構造に依存します．
+        </p>
+        <figure class="article-figure is-seventy">
+          <img src="../../assets/images/research/example_tensornetwork.png" alt="Tensor Train，PEPS，TTNなどのテンソルネットワークの例">
+          <figcaption>代表的なテンソルネットワーク構造の例．問題に応じて適したネットワーク構造を選びます．</figcaption>
+        </figure>
+        <p>
+          1 次元鎖状の MPS では，$N$ 個の自由度を持つ波動関数を次のような積の形で表します．
+        </p>
+        <div class="math-block">
+          $$
+          \psi(\sigma_1,\dots,\sigma_N)
+          =
+          \sum_{\alpha_1,\dots,\alpha_{N-1}}
+          A^{[1]}_{\sigma_1,\alpha_1}
+          A^{[2]}_{\alpha_1,\sigma_2,\alpha_2}
+          \cdots
+          A^{[N]}_{\alpha_{N-1},\sigma_N}.
+          $$
+        </div>
+        <p>
+          ここで $\alpha_i$ はボンドと呼ばれる，分解の都合で現れる仮想的なインデックスです．
+          ボンドの次元が大きいほど複雑な相関を表せますが，必要なパラメータ数も増えます．
+          逆に，ボンドの次元が小さい範囲で十分な近似精度が得られれば，
+          元の巨大なテンソルを非常に少ないパラメータで近似できます．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>物理での例</h2>
+        <p>
+          テンソルネットワークは，統計物理の分配関数にも自然に現れます．
+          たとえば 1 次元イジング模型を考えると，周期境界条件のもとでハミルトニアンは
+          次のように書けます．
+        </p>
+        <div class="math-block">
+          $$
+          \mathcal{H} = -J\sum_{i=1}^{N} s_i s_{i+1},
+          \qquad s_{N+1}=s_1.
+          $$
+        </div>
+        <p>
+          転送行列 $T_{s_i s_{i+1}}=\exp(\beta J s_i s_{i+1})$ を導入すると，
+          分配関数は転送行列を輪状につないだ縮約として表せます．
+        </p>
+        <div class="math-block">
+          $$
+          Z
+          =
+          \sum_{\{\mathbf{s}\}} e^{-\beta \mathcal{H}[\mathbf{s}]}
+          =
+          \sum_{\{\mathbf{s}\}}
+          T_{s_1s_2}T_{s_2s_3}\cdots T_{s_Ns_1}.
+          $$
+        </div>
+        <p>
+          この表式では，それぞれの転送行列が 2 階テンソルであり，
+          隣り合うスピン変数について縮約されています．
+          開いたインデックスが残らないため，最終的に得られる量はスカラーであり，
+          これは分配関数がスカラーであることに対応しています．
+        </p>
+        <figure class="article-figure is-small">
+          <img src="../../assets/images/research/1d_ising_partition_function.png" alt="1次元イジング模型の分配関数を表すテンソルネットワーク">
+          <figcaption>1 次元イジング模型の分配関数．転送行列を輪状に縮約したテンソルネットワークとして表せます．</figcaption>
+        </figure>
+      </section>
+
+      <section class="section-block">
+        <h2>研究との関係</h2>
+        <p>
+          私の研究では，このテンソルネットワークによる情報圧縮を，高次元関数やファインマンダイアグラムに対して利用します．
+          特に QTT や TCI は，高次元の対象を低ランク構造として扱うための重要な道具です．
+        </p>
+        <div class="note-box">
+          <p>
+            関連する話題として，
+            <a href="qtt.html">QTT</a>，<a href="matrix-cross-interpolation.html">Matrix Cross Interpolation</a>，
+            <a href="tci.html">TCI</a> は
+            テンソルネットワークの考え方を高次元関数の圧縮に活かす具体的な道具です
+            <a class="citation" href="#ref-khoromskij2011">[4]</a>
+            <a class="citation" href="#ref-gourianov2022">[5]</a>．
+          </p>
+        </div>
+      </section>
+
+      <section class="section-block">
+        <h2>参考文献</h2>
+        <p>
+          このページは，修士論文の第3章をWeb向けに整理し，関連する原典を併記したものです．
+          修士論文PDFは <a href="../../assets/docs/master_thesis.pdf" target="_blank" rel="noreferrer">こちら</a> から確認できます．
+        </p>
+        <ol class="reference-list">
+          <li id="ref-oseledets2011">I. V. Oseledets, “Tensor-Train Decomposition,” SIAM Journal on Scientific Computing 33, 2295 (2011).</li>
+          <li id="ref-white1992">S. R. White, “Density matrix formulation for quantum renormalization groups,” Physical Review Letters 69, 2863 (1992).</li>
+          <li id="ref-ostlund1995">S. Ostlund and S. Rommer, “Thermodynamic limit of density matrix renormalization,” Physical Review Letters 75, 3537 (1995).</li>
+          <li id="ref-khoromskij2011">B. N. Khoromskij, “O(d log N)-Quantics Approximation of N-d Tensors in High-Dimensional Numerical Modeling,” Constructive Approximation 34, 257 (2011).</li>
+          <li id="ref-gourianov2022">N. Gourianov et al., “A quantum-inspired approach to exploit turbulence structures,” Nature Computational Science 2, 30 (2022).</li>
+        </ol>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2026 Hirone Ishida</p>
+    </div>
+  </footer>
+</body>
+</html>

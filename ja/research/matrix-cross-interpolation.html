@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Matrix Cross Interpolation | 研究 | Hirone Ishida</title>
+  <script src="../../assets/js/theme.js"></script>
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [["$", "$"], ["\\(", "\\)"]],
+        displayMath: [["$$", "$$"], ["\\[", "\\]"]]
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container site-header-inner">
+      <div class="site-brand">
+        <p class="site-title">Hirone Ishida</p>
+        <p class="site-subtitle">Matrix Cross Interpolation</p>
+      </div>
+    </div>
+  </header>
+
+  <nav class="site-nav" aria-label="主要ページ">
+    <div class="container site-nav-inner">
+      <ul>
+        <li><a href="../index.html">ホーム</a></li>
+        <li><a href="../cv.html">CV</a></li>
+        <li><a href="../research.html" class="active">研究概要</a></li>
+        <li><a href="../outputs.html">業績</a></li>
+        <li><a href="../hobby.html">趣味の部屋</a></li>
+      </ul>
+      <div class="header-actions">
+        <nav class="lang-switch" aria-label="Language switch">
+          <a href="matrix-cross-interpolation.html" class="active" aria-current="page" lang="ja">JA</a>
+          <a href="../../en/index.html" lang="en">EN</a>
+        </nav>
+        <div class="theme-switch" role="group" aria-label="表示モード切替">
+          <button type="button" class="active" data-theme-value="light" aria-pressed="true">Light</button>
+          <button type="button" data-theme-value="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container page-content">
+    <p class="breadcrumb"><a href="../research.html">研究概要</a><span>/</span>Matrix Cross Interpolation</p>
+
+    <div class="article-layout">
+      <section class="section-block">
+        <p class="section-label">Method</p>
+        <h1>Matrix Cross Interpolation</h1>
+        <p class="article-lead">
+          Matrix Cross Interpolation (MCI) は，行列のすべての成分を使うのではなく，
+          選ばれた行と列だけから行列全体を近似する方法です．
+          高次元テンソルへ拡張すると <a href="tci.html">Tensor Cross Interpolation (TCI)</a> になり，
+          巨大なテンソルや高次元関数を少ないサンプル点から構成するための基礎になります．
+        </p>
+        <ul class="mini-nav" aria-label="関連ページ">
+          <li><a href="matrix-low-rank.html">行列の低ランク近似</a></li>
+          <li><a href="tensor-decomposition.html">テンソル分解</a></li>
+          <li><a href="tensor-network.html">テンソルネットワーク</a></li>
+          <li><a href="tensor-train.html">Tensor Train</a></li>
+          <li><a href="qtt.html">QTT</a></li>
+          <li><a href="matrix-cross-interpolation.html" class="active" aria-current="page">Matrix Cross Interpolation</a></li>
+          <li><a href="tci.html">TCI</a></li>
+        </ul>
+        <p class="diagram-caption">
+          具体例で雰囲気をつかみたい場合は，
+          <a href="https://zenn.dev/hirone_ishida/articles/2e4f90cf48adcf" target="_blank" rel="noreferrer">Zennの記事</a>にデモをまとめています．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>SVDとの違い</h2>
+        <p>
+          <a href="matrix-low-rank.html">特異値分解</a>に基づく低ランク近似は強力ですが，
+          分解を行うためには対象となる行列の成分をあらかじめ用意する必要があります．
+          行列が非常に大きい場合や，成分の評価そのものにコストがかかる場合，
+          行列全体を作ってから分解する方針はすぐに重くなります．
+          MCIでは，行列全体ではなく一部の行と列のみを評価し，行列分解を行います．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>行列の部分行列</h2>
+        <p>
+          サイズ $m\times n$ の行列 $A$ を考えます．
+          行と列のインデックス全体をそれぞれ
+          $\mathbb{I}=\{1,2,\dots,m\}$，$\mathbb{J}=\{1,2,\dots,n\}$ とします．
+          この中から選ばれた行と列の集合を
+          $\mathcal{I}=\{i_1,i_2,\dots,i_{{\chi}}\}$，
+          $\mathcal{J}=\{j_1,j_2,\dots,j_{{\chi}}\}$ と書きます．
+        </p>
+        <p>
+          行列 $A$ から，行を $\mathcal{I}$，列を $\mathcal{J}$ に制限して取り出した部分行列を
+          $A(\mathcal{I},\mathcal{J})$ と表します．例えば，$A(\mathbb{I},\mathcal{J})$ は
+          選ばれた列だけを抜き出した行列で，$A(\mathcal{I},\mathbb{J})$ は
+          選ばれた行だけを抜き出した行列です．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>Matrix Cross Interpolation</h2>
+        <p>
+          MCI では，選ばれた行と列が交差する部分行列
+          $P=A(\mathcal{I},\mathcal{J})$ をピボット行列と呼びます．
+          $P$ が正則であるとき，行列 $A$ は次のように近似されます．
+        </p>
+        <div class="math-block">
+          $$
+          A(\mathbb{I},\mathbb{J})
+          \simeq
+          A(\mathbb{I},\mathcal{J})
+          P^{-1}
+          A(\mathcal{I},\mathbb{J})
+          \equiv
+          \widetilde{A}(\mathbb{I},\mathbb{J}).
+          $$
+        </div>
+        <p>
+          右辺に現れるのは，選ばれた列 $A(\mathbb{I},\mathcal{J})$，
+          ピボット行列 $P$，選ばれた行 $A(\mathcal{I},\mathbb{J})$ だけです．
+          そのため，全成分を評価する代わりに，選ばれた断面から行列全体を復元する近似とみなせます．
+        </p>
+        <figure class="article-figure is-seventy">
+          <img src="../../assets/images/research/MCI_image.png" alt="Matrix Cross Interpolation の概念図">
+          <figcaption>
+            Matrix Cross Interpolation は，選ばれた行と列の情報から行列全体を近似します．
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="section-block">
+        <h2>補間としての性質</h2>
+        <p>
+          MCI による近似 $\widetilde{A}$ は，選ばれた行と列の上では元の行列 $A$ と一致します．
+        </p>
+        <div class="math-block">
+          $$
+          \widetilde{A}(\mathcal{I},\mathbb{J}) = A(\mathcal{I},\mathbb{J}),
+          \qquad
+          \widetilde{A}(\mathbb{I},\mathcal{J}) = A(\mathbb{I},\mathcal{J}).
+          $$
+        </div>
+        <p>
+          この性質から，MCI は単なる低ランク分解というより，
+          選ばれた行と列を厳密に通る補間と見ることができます．
+          また，$A$ のランクと同じ数だけ適切なピボットを選べた場合には，
+          この近似は厳密になり $\widetilde{A}=A$ が成り立ちます．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>ピボットの選び方</h2>
+        <p>
+          MCI の精度は，ピボットの数 ${\chi}$ だけでなく，
+          どの行と列を選ぶかに大きく依存します．
+          代表的な考え方の一つが Maximal Volume Algorithm で，
+          ピボット行列の「体積」，すなわち行列式の絶対値が大きくなるように
+          行と列を選ぶ方針です．
+        </p>
+        <p>
+          直感的には，似たような行や列ばかりを選ぶと，まだ見ていない成分をうまく説明できません．
+          できるだけ独立な情報を持つ行と列を選ぶことで，少ないピボット数でも
+          行列全体を良く近似できる可能性が高くなります．
+        </p>
+        <figure class="article-figure is-medium">
+          <img src="../../assets/images/research/mci_mva.png" alt="ピボット行列の行列式と最大値ノルムの関係">
+          <figcaption>
+            ピボット行列の選び方は，MCI の近似精度に直接影響します．
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="section-block">
+        <h2>prrLU分解との関係</h2>
+        <p>
+          実際の計算では，ピボット行列の逆行列を明示的に計算するよりも，
+          LU分解に基づいて安定にピボットを選ぶ方法がよく使われます．
+          その一つが partial rank-revealing LU (prrLU)分解です．
+        </p>
+        <p>
+          prrLU 分解では，行と列の置換を表す行列 $P,Q$ を用いて，
+          行列 $A$ を指定したランクで次のように分解します．
+        </p>
+        <div class="math-block">
+          $$
+          PAQ = \widetilde{L}D\widetilde{U} + \varepsilon.
+          $$
+        </div>
+        <p>
+          ここで $\widetilde{L}$ は下三角的な行列，$D$ は対角行列，
+          $\widetilde{U}$ は上三角的な行列，$\varepsilon$ は残差を表します．
+          「partial」という名前の通り，ガウスの消去法を任意のピボット数で止めることができ，
+          その時点のピボットから MCI と等価な近似が得られます．
+        </p>
+        <p>
+          MCI と prrLU 分解は数学的には対応していますが，
+          prrLU ではピボット行列の逆行列を明示的に作らずに済むため，数値的により安定です．
+          そのため，TCI のような大規模な補間アルゴリズムの実装では，
+          prrLU 的なピボット選択が重要になります．
+        </p>
+        <figure class="article-figure">
+          <img src="../../assets/images/research/CI_and_prrLU.png" alt="MCI と prrLU 分解の対応関係">
+          <figcaption>
+            prrLU 分解は，Matrix Cross Interpolation を安定に実行するための重要な道具です．
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="section-block">
+        <h2>TCIへの橋渡し</h2>
+        <p>
+          Matrix Cross Interpolation は，行列という2次元の対象に対する補間です．
+          これを多次元テンソルへ拡張し，TT形式のコアをサンプル点から構成する方法が
+          <a href="tci.html">Tensor Cross Interpolation</a> です．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>参考文献</h2>
+        <ol class="reference-list">
+          <li>S. Dolgov and D. Savostyanov, Computer Physics Communications 246, 106869 (2020).</li>
+          <li>Y. N. Fernandez et al., arXiv:2407.02454 (2024).</li>
+        </ol>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2026 Hirone Ishida</p>
+    </div>
+  </footer>
+</body>
+</html>

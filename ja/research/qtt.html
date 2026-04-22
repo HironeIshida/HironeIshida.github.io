@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QTT | 研究 | Hirone Ishida</title>
+  <script src="../../assets/js/theme.js"></script>
+  <link rel="stylesheet" href="../../assets/css/style.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [["$", "$"], ["\\(", "\\)"]],
+        displayMath: [["$$", "$$"], ["\\[", "\\]"]]
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container site-header-inner">
+      <div class="site-brand">
+        <p class="site-title">Hirone Ishida</p>
+        <p class="site-subtitle">Quantics Tensor Train</p>
+      </div>
+    </div>
+  </header>
+
+  <nav class="site-nav" aria-label="主要ページ">
+    <div class="container site-nav-inner">
+      <ul>
+        <li><a href="../index.html">ホーム</a></li>
+        <li><a href="../cv.html">CV</a></li>
+        <li><a href="../research.html" class="active">研究概要</a></li>
+        <li><a href="../outputs.html">業績</a></li>
+        <li><a href="../hobby.html">趣味の部屋</a></li>
+      </ul>
+      <div class="header-actions">
+        <nav class="lang-switch" aria-label="Language switch">
+          <a href="qtt.html" class="active" aria-current="page" lang="ja">JA</a>
+          <a href="../../en/index.html" lang="en">EN</a>
+        </nav>
+        <div class="theme-switch" role="group" aria-label="表示モード切替">
+          <button type="button" class="active" data-theme-value="light" aria-pressed="true">Light</button>
+          <button type="button" data-theme-value="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container page-content">
+    <p class="breadcrumb"><a href="../research.html">研究概要</a><span>/</span><a href="tensor-train.html">Tensor Train</a><span>/</span>QTT</p>
+
+    <div class="article-layout">
+      <section class="section-block">
+        <p class="section-label">Method</p>
+        <h1>QTT</h1>
+        <p class="article-lead">
+          QTT（Quantics Tensor Train）は，連続変数の関数や細かい格子上のデータを，
+          2 進数に基づく小さなインデックスへ分解し，
+          <a href="tensor-train.html">Tensor Train</a> として表す方法です．
+          関数が持つ構造を長さスケールごとに分けて見ることで，
+          指数的に細かい解像度を少数のパラメータで扱える場合があります．
+        </p>
+        <ul class="mini-nav" aria-label="関連ページ">
+          <li><a href="matrix-low-rank.html">行列の低ランク近似</a></li>
+          <li><a href="tensor-decomposition.html">テンソル分解</a></li>
+          <li><a href="tensor-network.html">テンソルネットワーク</a></li>
+          <li><a href="tensor-train.html">Tensor Train</a></li>
+          <li><a href="qtt.html" class="active" aria-current="page">QTT</a></li>
+          <li><a href="matrix-cross-interpolation.html">Matrix Cross Interpolation</a></li>
+          <li><a href="tci.html">TCI</a></li>
+        </ul>
+      </section>
+
+      <section class="section-block">
+        <h2>連続関数のテンソル化</h2>
+        <p>
+          連続変数の関数は，そのままでは計算機で扱えません．
+          そのため，まず変数を離散化し，関数値を配列として保持します．
+          たとえば 1 変数関数 $f(x):x\in[0,1)\to\mathbb{C}$ を
+          $d$ 個の格子点 $x_1,x_2,\dots,x_d$ で離散化すると，
+          関数は次のようなベクトルとして表されます．
+        </p>
+        <div class="math-block">
+          $$
+          f(x)
+          \longrightarrow
+          \bigl(f(x_1),f(x_2),\dots,f(x_d)\bigr).
+          $$
+        </div>
+        <p>
+          多変数関数
+          $f(\boldsymbol{x}):\boldsymbol{x}=(x_1,x_2,\dots,x_N)\in[0,1)^N\to\mathbb{C}$
+          の場合は，各変数を格子化することで $N$ 階テンソルが得られます．
+        </p>
+        <div class="math-block">
+          $$
+          F_{i_1i_2\cdots i_N}
+          =
+          f(x_{1,i_1},x_{2,i_2},\dots,x_{N,i_N}).
+          $$
+        </div>
+        <p>
+          しかし，単純な格子化では次元 $N$ に対してテンソルの要素数が指数的に増えます．
+          また，テンソルの低ランク構造は，どのようにテンソル化するかに強く依存します．
+          QTT は，2 進数表示を用いてこのテンソル化の仕方を工夫する方法です．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>Quantics表現</h2>
+        <p>
+          Quantics表現では，1 つの連続変数 $x\in[0,1)$ を
+          $R$ 個の 2 値インデックス
+          $\sigma_1,\sigma_2,\dots,\sigma_R\in\{0,1\}$ で表します．
+        </p>
+        <div class="math-block">
+          $$
+          x_{\boldsymbol{\sigma}}
+          =
+          \sum_{\ell=1}^{R}\frac{\sigma_\ell}{2^\ell}
+          =
+          (0.\sigma_1\sigma_2\cdots\sigma_R)_2.
+          $$
+        </div>
+        <p>
+          これは区間 $[0,1)$ を $2^R$ 個の等間隔メッシュに分けることに対応します．
+          通常の離散化では $2^R$ 個の値を 1 本の長いベクトルとして見ますが，
+          Quantics表現では 2 値インデックスを $R$ 個持つテンソルとして見ます．
+        </p>
+        <div class="math-block">
+          $$
+          F_{\sigma_1\sigma_2\cdots\sigma_R}
+          =
+          f\bigl((0.\sigma_1\sigma_2\cdots\sigma_R)_2\bigr).
+          $$
+        </div>
+        <p>
+          各桁は異なる長さスケールを担当します．
+          $\sigma_1$ は $1/2$ スケール，$\sigma_2$ は $1/2^2$ スケール，
+          最後の $\sigma_R$ は $1/2^R$ スケールの情報を表します．
+          この「桁ごとの分解」が，QTT の圧縮性を理解するうえで重要です．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>Quantics Tensor Train</h2>
+        <p>
+          Quantics表現で得られた $R$ 階テンソルを
+          <a href="tensor-train.html">Tensor Train</a> として低ランク近似したものを，
+          Quantics Tensor Train (QTT) と呼びます
+          <a class="citation" href="#ref-oseledets2009-qtt">[1]</a>
+          <a class="citation" href="#ref-khoromskij2011-qtt">[2]</a>．
+        </p>
+        <div class="math-block">
+          $$
+          F_{\sigma_1\sigma_2\cdots\sigma_R}
+          \simeq
+          \sum_{\alpha_1,\dots,\alpha_{R-1}}
+          F^{(1)}_{\sigma_1\alpha_1}
+          F^{(2)}_{\alpha_1\sigma_2\alpha_2}
+          \cdots
+          F^{(R)}_{\alpha_{R-1}\sigma_R}.
+          $$
+        </div>
+        <p>
+          中間のTTコアはおおよそ
+          $2\times\chi_{\ell-1}\times\chi_\ell$
+          のサイズを持ちます．
+          ボンド次元 $\chi_\ell$ が小さく保てるなら，
+          $2^R$ 点の関数値を，$R$ に比例する程度のデータ量で表現できます．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>多変数QTTとインデックス順序</h2>
+        <p>
+          多変数関数
+          $f(\boldsymbol{x})=f(x_1,x_2,\dots,x_N)$ では，
+          各変数 $x_i$ を $R$ 桁の 2 進数で表します．
+        </p>
+        <div class="math-block">
+          $$
+          x_i
+          =
+          \sum_{\ell=1}^{R}\frac{\sigma_{i\ell}}{2^\ell}
+          \longrightarrow
+          (\sigma_{i1},\sigma_{i2},\dots,\sigma_{iR}).
+          $$
+        </div>
+        <p>
+          このとき，QTT は全部で $L=NR$ 個の 2 値インデックスを持つ TT になります．
+          重要なのは，これらのインデックスを TT 上にどの順番で並べるかです．
+          このページでは，次の 2 つの呼び方に統一します．
+        </p>
+        <ul class="item-list">
+          <li>Sequential: 変数ごとに全ビットを並べる順序．2変数 $x,y$ の例: $x_1x_2\cdots x_R,y_1y_2\cdots y_R$．</li>
+          <li>Interleaved: 同じ長さスケールのビットを隣り合わせる順序．2変数 $x,y$ の例: $x_1y_1,x_2y_2,\dots,x_Ry_R$．</li>
+        </ul>
+        <p>
+          TTのボンド次元は，インデックスの並び順にも依存します．
+          多変数関数では，同じ長さスケールの変数同士を近くに置く Interleaved のほうが，
+          より低ランクになりやすい場合があります．
+        </p>
+        <figure class="article-figure is-medium">
+          <img src="../../assets/images/research/TT_index_ordering.png" alt="多変数QTTのSequential順序とInterleaved順序">
+          <figcaption>多変数QTTでは，インデックス順序が圧縮性に影響します．</figcaption>
+        </figure>
+      </section>
+
+      <section class="section-block">
+        <h2>低ランク構造</h2>
+        <p>
+          $N$ 変数関数を各変数 $R$ 桁で Quantics表現すると，
+          QTT の長さは $L=NR$ になります．
+          QTT 全体のデータ量は，各 TTコアの要素数の和として見積もれます．
+        </p>
+        <div class="math-block">
+          $$
+          D_{\mathrm{QTT}}
+          =
+          \sum_{\ell=1}^{L}2\chi_{\ell-1}\chi_\ell
+          \leq
+          2\chi^2L,
+          \qquad
+          \chi=\max_\ell\chi_\ell,
+          \quad
+          \chi_0=\chi_L=1.
+          $$
+        </div>
+        <p>
+          厳密なTTを作る場合，最大ボンド次元は一般に指数的に大きくなります．
+          その場合，QTTを使う利点はありません．
+          一方で，許容誤差の範囲でボンド次元を小さく保てるなら，
+          元の関数は QTT において低ランク構造を持つと言えます．
+          低ランク構造は関数そのものだけでなく，テンソル化の方法やインデックス順序にも依存します．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>QTTで圧縮できる例</h2>
+        <p>
+          QTTで低ランクに表せる典型例はいくつか知られています．
+          たとえば指数関数は，2進数表示を代入すると各桁に分離した積になります．
+        </p>
+        <div class="math-block">
+          $$
+          \exp(a x_{\boldsymbol{\sigma}})
+          =
+          \prod_{\ell=1}^{R}
+          \exp\left(a\frac{\sigma_\ell}{2^\ell}\right).
+          $$
+        </div>
+        <p>
+          そのため，指数関数はボンド次元 1 の QTT として厳密に表せます．
+          三角関数は指数関数の和として表せるため，典型的にはボンド次元 2 で表せます．
+          また，虚時間Green関数のように指数関数の和で書ける対象も，QTTと相性がよい例です
+          <a class="citation" href="#ref-shinaoka2023-qtt">[3]</a>
+          <a class="citation" href="#ref-takahashi2025-qtt">[4]</a>．
+        </p>
+        <p>
+          もう一つ重要な例は，単位行列やデルタ関数的な構造です．
+          2変数 $x,y$ を同じ桁数で Quantics表現すると，
+          離散的な $\delta(x-y)$ は同じ桁同士のデルタの積として表せます．
+        </p>
+        <div class="math-block">
+          $$
+          \delta(x-y)
+          \longrightarrow
+          \prod_{\ell=1}^{R}
+          \delta_{\sigma_{x,\ell}\sigma_{y,\ell}}.
+          $$
+        </div>
+        <p>
+          このような構造では，Interleaved順序で同じ長さスケールのビットを近くに置くことが自然です．
+          対角付近にピークを持つ関数でも，Interleaved順序にすることで Sequential順序より小さなボンド次元に抑えられることを確認します．
+        </p>
+        <div class="math-block">
+          $$
+          f(x_1,x_2)
+          =
+          \frac{\gamma}{(x_1-x_2)^2+\gamma^2}.
+          $$
+        </div>
+        <figure class="article-figure is-seventy">
+          <img src="../../assets/images/research/diagfunction_qtt.png" alt="対角的な2変数関数とQTTボンド次元の比較">
+          <figcaption>対角的な構造を持つ関数では，インデックス順序が圧縮性に大きく影響します．</figcaption>
+        </figure>
+      </section>
+
+      <section class="section-block">
+        <h2>QTT形式のRiemann和</h2>
+        <p>
+          QTT形式の利点は，関数を圧縮して保存できるだけではありません．
+          連続関数をQTTで表しておくと，Riemann和に基づく数値積分も
+          TTコアの縮約として計算できます．
+          ここでは簡単のため，区間 $[0,1)$ 上の1変数関数を考えます．
+        </p>
+        <p>
+          積分区間を $2^R$ 個の等間隔メッシュに分割すると，格子幅は $h=2^{-R}$ です．
+          Riemann和は次のように書けます．
+        </p>
+        <div class="math-block">
+          $$
+          I
+          =
+          \int_0^1 f(x)\,dx
+          \simeq
+          \frac{1}{2^R}
+          \sum_{\sigma_1,\dots,\sigma_R\in\{0,1\}}
+          F_{\sigma_1\sigma_2\cdots\sigma_R}.
+          $$
+        </div>
+        <p>
+          ここで $F_{\sigma_1\sigma_2\cdots\sigma_R}$ をQTT形式で表すと，
+          積分は全てのローカルインデックスについて和を取る縮約になります．
+        </p>
+        <div class="math-block">
+          $$
+          F_{\sigma_1\sigma_2\cdots\sigma_R}
+          \simeq
+          \sum_{\alpha_1,\dots,\alpha_{R-1}}
+          F^{(1)}_{\sigma_1\alpha_1}
+          F^{(2)}_{\alpha_1\sigma_2\alpha_2}
+          \cdots
+          F^{(R)}_{\alpha_{R-1}\sigma_R}.
+          $$
+        </div>
+        <div class="math-block">
+          $$
+          I
+          \simeq
+          \sum_{\alpha_1,\dots,\alpha_{R-1}}
+          \left(\frac{1}{2}\sum_{\sigma_1=0}^{1}F^{(1)}_{\sigma_1\alpha_1}\right)
+          \left(\frac{1}{2}\sum_{\sigma_2=0}^{1}F^{(2)}_{\alpha_1\sigma_2\alpha_2}\right)
+          \cdots
+          \left(\frac{1}{2}\sum_{\sigma_R=0}^{1}F^{(R)}_{\alpha_{R-1}\sigma_R}\right).
+          $$
+        </div>
+        <p>
+          つまり，QTT形式では各コアの物理インデックス $\sigma_\ell$ について平均を取り，
+          残ったボンドインデックスを縮約すれば積分値が得られます．
+          通常のRiemann和では $2^R$ 個の格子点を全て足し上げますが，
+          QTTが低ランクであれば，必要な計算量はボンド次元と長さ $R$ に支配されます．
+          そのため，指数的に細かいグリッド幅 $h=2^{-R}$ を使いながら，
+          関数値を全点で明示的に保持・総和するコストを避けられます．
+        </p>
+        <p>
+          もちろん，これは関数がQTTで低ランクに表せる場合に有効です．
+          その場合，Riemann和そのものの離散化誤差は $h=2^{-R}$ に従って小さくなり，
+          さらにQTTの縮約により，細かい格子を使うためのメモリと総和のコストを抑えることができます．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>研究との関係</h2>
+        <p>
+          私の研究では，ファインマンダイアグラムや高次元関数が
+          QTT形式でどの程度圧縮できるか，またどのような変数系ならより低ランクになるかに興味があります．
+          実際には全ての格子点を評価してからTT分解することは難しいため，
+          <a href="matrix-cross-interpolation.html">Matrix Cross Interpolation</a> や
+          <a href="tci.html">TCI</a> のようなサンプリングベースの手法が重要になります．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>参考文献</h2>
+        <p>
+          このページは，修士論文の第4章をWeb向けに整理したものです．
+          修士論文PDFは <a href="../../assets/docs/master_thesis.pdf" target="_blank" rel="noreferrer">こちら</a> から確認できます．
+        </p>
+        <ol class="reference-list">
+          <li id="ref-oseledets2009-qtt">I. Oseledets, Doklady Mathematics 80, 653 (2009).</li>
+          <li id="ref-khoromskij2011-qtt">B. N. Khoromskij, “O(d log N)-Quantics Approximation of N-d Tensors in High-Dimensional Numerical Modeling,” Constructive Approximation 34, 257 (2011).</li>
+          <li id="ref-shinaoka2023-qtt">H. Shinaoka, M. Wallerberger, Y. Murakami, K. Nogaki, R. Sakurai, P. Werner, and A. Kauch, Physical Review X 13, 021015 (2023).</li>
+          <li id="ref-takahashi2025-qtt">H. Takahashi, R. Sakurai, and H. Shinaoka, SciPost Physics 18, 007 (2025).</li>
+        </ol>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2026 Hirone Ishida</p>
+    </div>
+  </footer>
+</body>
+</html>
