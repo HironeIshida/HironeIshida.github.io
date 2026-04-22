@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://hironeishida.github.io/sitemap.xml
