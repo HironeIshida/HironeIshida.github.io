@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://hironeishida.github.io/sitemap.xml
+Sitemap: https://hironeishida.github.io/sitemap.txt
