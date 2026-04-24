@@ -225,6 +225,12 @@ a:hover {
   font-size: 0.95rem;
 }
 
+.site-nav ul a.nav-secret-link {
+  position: relative;
+  min-width: 5.4rem;
+  min-height: 2.15rem;
+}
+
 .site-nav ul a:hover,
 .site-nav ul a:focus-visible {
   background: var(--surface-muted);
@@ -235,6 +241,18 @@ a:hover {
   background: var(--accent-soft);
   color: var(--accent);
   font-weight: 600;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .breadcrumb {
