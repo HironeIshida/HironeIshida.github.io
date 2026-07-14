@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TCI | 研究 | Hirone Ishida</title>
+  <title>Tensor Cross Interpolation (TCI) | 研究概要 | Hirone Ishida</title>
+  <meta name="description" content="Tensor Cross Interpolation (TCI) の概要．高次元テンソルや高次元関数を，全要素を作らずに少数のサンプル点から Tensor Train 形式へ圧縮する考え方を解説します．">
   <script src="../../assets/js/theme.js"></script>
   <link rel="stylesheet" href="../../assets/css/style.css">
   <script>
@@ -49,15 +50,16 @@
   </nav>
 
   <main class="container page-content">
-    <p class="breadcrumb"><a href="../research.html">研究概要</a><span>/</span><a href="tensor-network.html">テンソルネットワーク</a><span>/</span>TCI</p>
+    <p class="breadcrumb"><a href="../research.html">研究概要</a><span>/</span>TCI</p>
 
     <div class="article-layout">
       <section class="section-block">
         <p class="section-label">Method</p>
-        <h1>TCI (工事中)</h1>
+        <h1>Tensor Cross Interpolation (TCI)</h1>
         <p class="article-lead">
           TCI（Tensor Cross Interpolation）は，高次元テンソルや高次元関数を
-          すべての格子点で評価することなく，選ばれたサンプル点だけから低ランク近似を構成する手法です．
+          全要素で評価することなく，少数のサンプル点だけから
+          Tensor Train（TT）形式の近似を構成する手法です．
         </p>
         <ul class="mini-nav" aria-label="関連ページ">
           <li><a href="tensor-network.html">テンソルネットワーク</a></li>
@@ -67,6 +69,309 @@
           <li><a href="matrix-cross-interpolation.html">Matrix Cross Interpolation</a></li>
           <li><a href="tci.html" class="active" aria-current="page">TCI</a></li>
         </ul>
+      </section>
+
+      <section class="section-block">
+        <h2>なぜ TCI が必要か</h2>
+        <p>
+          <a href="tensor-train.html">TT形式</a> は，高次元テンソルを少ないデータ量で表現できる強力な形式です．
+          しかし，<a href="tensor-decomposition.html">SVDに基づくテンソル分解</a>では，
+          もとのテンソルの全要素を持つ必要があります．
+          対象のテンソルが十分小さければ問題ありませんが，物理で現れる高次元関数や巨大テンソルでは，
+          そもそも全要素をメモリに置くこと自体が難しくなります．
+        </p>
+        <p>
+          テンソルに低ランク構造がある場合，本質的に必要な情報は全体に対してごく僅かなはずです．Tensor Cross Interpolation (TCI)とは，本質的な寄与を与えるごく少数の要素のみを利用してTTを推定する方法です．
+          SVDは最良な低ランク近似を与える保証がある一方，TCIはそのような保証はありません．しかし，実用的に十分な精度で低ランク近似できることが経験的に知られています．
+          TCIを用いることで，SVD不可能なサイズの巨大テンソルもTT形式で表現することができます．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>Matrix Cross Interpolation から TCI へ</h2>
+        <p>
+          TCI は，<a href="matrix-cross-interpolation.html">Matrix Cross Interpolation (MCI)</a> を
+          高次元テンソルへ拡張したものと見ることができます．
+          MCI では，行列のすべての成分を使う代わりに，
+          選ばれた行と列の情報だけから行列全体を近似しました．
+          TCIでは，MCIの発想を高次元へと拡張します．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>TCI の基本アイデア</h2>
+        <p>
+          いま，$L$ 個のインデックスを持つテンソル
+          $F_{\sigma_1\sigma_2\cdots\sigma_L}$ を考えます．
+          TCI の目標は，このテンソルを次のような TT 形式
+          $\widetilde{F}_{\sigma_1\sigma_2\cdots\sigma_L}$ で近似することです．
+        </p>
+        <div class="math-block">
+          $$
+          \widetilde{F}_{\sigma_1\sigma_2\cdots\sigma_L}
+          =
+          \sum_{\alpha_1,\alpha_2,\dots,\alpha_{L-1}}
+          \widetilde{F}^{(1)}_{\sigma_1\alpha_1}
+          \widetilde{F}^{(2)}_{\alpha_1\sigma_2\alpha_2}
+          \cdots
+          \widetilde{F}^{(L)}_{\alpha_{L-1}\sigma_L}.
+          $$
+        </div>
+        <p>
+          TCI では，この TT をテンソルの全要素から作るのではなく，
+          適応的に選ばれた一部の要素だけから構成します．
+          そのために，まず記号をはっきりさせておきます．
+          各ローカルインデックス $\sigma_\ell$ は
+          インデックス集合 $\mathbb{S}_\ell$ の元で，
+          その次元を $d_\ell = |\mathbb{S}_\ell|$ とします．
+        </p>
+        <div class="math-block">
+          $$
+          \sigma_\ell \in \mathbb{S}_\ell,
+          \qquad
+          |\mathbb{S}_\ell| = d_\ell,
+          \qquad
+          \ell = 1, 2, \dots, L .
+          $$
+          $$
+          \mathbb{I}_\ell = \mathbb{S}_1 \times \mathbb{S}_2 \times \cdots \times \mathbb{S}_\ell,
+          \qquad
+          \mathbb{J}_{\ell+1} = \mathbb{S}_{\ell+1} \times \mathbb{S}_{\ell+2} \times \cdots \times \mathbb{S}_L .
+          $$
+          $$
+          i_\ell \in \mathbb{I}_\ell, \qquad
+          j_{\ell+1} \in \mathbb{J}_{\ell+1}, \qquad
+          i_\ell \oplus j_{\ell+1} = \sigma .
+          $$
+        </div>
+        <p>
+          ここで $\mathbb{I}_\ell$ は
+          「左側 $\ell$ 個のインデックスをまとめた全候補の集合」，
+          $\mathbb{J}_{\ell+1}$ は
+          「右側 $L-\ell$ 個のインデックスをまとめた全候補の集合」です．
+          さらに，その中から実際に代表点として使う部分集合
+          $\mathcal{I}_\ell \subset \mathbb{I}_\ell$，
+          $\mathcal{J}_{\ell+1} \subset \mathbb{J}_{\ell+1}$
+          を選びます．
+          修論では，この $\mathcal{I}_\ell,\mathcal{J}_{\ell+1}$ を
+          ピボットリストと呼んでいます．
+        </p>
+        <p>
+          ピボットリストが決まると，元のテンソル $F$ から
+          0次スライスとしてピボット行列 $P_\ell$，
+          1次スライスとして $T$ テンソル $T_\ell$ を定義できます．
+          $P_\ell$ は正方行列で，そのサイズは
+          $|\mathcal{I}_\ell| = |\mathcal{J}_{\ell+1}| = \chi_\ell$ です．
+        </p>
+        <div class="math-block">
+          $$
+          [P_\ell]_{i_\ell j_{\ell+1}}
+          =
+          F_{i_\ell \oplus j_{\ell+1}},
+          \qquad
+          i_\ell \in \mathcal{I}_\ell,\quad j_{\ell+1} \in \mathcal{J}_{\ell+1},
+          $$
+          $$
+          [T_\ell]_{i_{\ell-1}\sigma_\ell j_{\ell+1}}
+          =
+          F_{i_{\ell-1} \oplus \sigma_\ell \oplus j_{\ell+1}},
+          \qquad
+          i_{\ell-1} \in \mathcal{I}_{\ell-1},\quad
+          \sigma_\ell \in \mathbb{S}_\ell,\quad
+          j_{\ell+1} \in \mathcal{J}_{\ell+1}.
+          $$
+        </div>
+        <p>
+          $T_\ell$ のローカルインデックス $\sigma_\ell$ を分けて
+          $T_\ell(\sigma_\ell)$ と見れば，
+          TCI 公式は行列積の形で
+          次のように書けます．
+        </p>
+        <div class="math-block">
+          $$
+          \widetilde{F}_{\sigma_1\cdots\sigma_L}
+          =
+          T_1(\sigma_1) P_1^{-1}
+          T_2(\sigma_2) P_2^{-1}
+          \cdots
+          P_{L-1}^{-1} T_L(\sigma_L).
+          $$
+        </div>
+        <p>
+          これが図に対応する TCI 公式です．
+          つまり TCI では，元の巨大テンソルそのものを保存する代わりに，
+          各境界で選ばれたピボット行列 $P_\ell$ と
+          1サイト分の情報を持つ $T_\ell$ を保存し，
+          それらを縮約することで $\widetilde{F}$ を再構成します．
+        </p>
+        <figure class="article-figure">
+          <img src="../../assets/images/research/TCIformula.png" alt="TCI公式の模式図">
+          <figcaption>
+            TCI では，各境界で選ばれた代表点から作られる $T$ テンソルとピボット行列を使って，
+            元の高次元テンソルの TT 近似を構成します．
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="section-block">
+        <h2>どのように TT を決めるか</h2>
+        <p>
+          実際の TCI では，最初にいくつかの初期ピボットを置き，
+          それを少しずつ改善しながら TT を洗練していきます．
+          修論では，隣接する2サイトをまとめて更新する
+          <code>2-site updates</code> を中心に説明しています．
+        </p>
+        <p>
+          2-site updates では，境界 $\ell$ のまわりの2サイト
+          $(\sigma_\ell, \sigma_{\ell+1})$ をまとめて見ます．
+          そこで現れるのが，2次スライスとして定義される
+          $\Pi$ tensor です．
+        </p>
+        <div class="math-block">
+          $$
+          [\Pi_\ell]_{i_{\ell-1}\sigma_\ell\sigma_{\ell+1}j_{\ell+2}}
+          =
+          F_{i_{\ell-1} \oplus \sigma_\ell \oplus \sigma_{\ell+1} \oplus j_{\ell+2}},
+          $$
+        </div>
+        <p>
+          ここで $i_{\ell-1}$ は左側の代表点，
+          $j_{\ell+2}$ は右側の代表点で，
+          それぞれ
+          $i_{\ell-1} \in \mathcal{I}_{\ell-1}$，
+          $\sigma_\ell \in \mathbb{S}_\ell$，
+          $\sigma_{\ell+1} \in \mathbb{S}_{\ell+1}$，
+          $j_{\ell+2} \in \mathcal{J}_{\ell+2}$
+          と考えます．
+          $\Pi_\ell$ は4階テンソルですが，
+          行列の Cross Interpolation を使うために
+          左右をそれぞれまとめて行列化します．
+        </p>
+        <div class="math-block">
+          $$
+          [\Pi_\ell]_{i_{\ell-1}\sigma_\ell\sigma_{\ell+1}j_{\ell+2}}
+          \;\longrightarrow\;
+          [\Pi_\ell]_{(i_{\ell-1}\sigma_\ell),\,(\sigma_{\ell+1}j_{\ell+2})}.
+          $$
+        </div>
+        <p>
+          すると，この $\Pi_\ell$ に対して
+          <a href="matrix-cross-interpolation.html">行列版の Cross Interpolation</a> を
+          そのまま適用できます．
+          すなわち，
+        </p>
+        <div class="math-block">
+          $$
+          [\Pi_\ell]_{(i_{\ell-1}\sigma_\ell),\,(\sigma_{\ell+1}j_{\ell+2})}
+          \approx
+          [\Pi_\ell]_{(i_{\ell-1}\sigma_\ell),\,\mathcal{J}_{\ell+1}^{\downarrow}}
+          [\Pi_\ell]_{\mathcal{I}_\ell^{\downarrow},\,\mathcal{J}_{\ell+1}^{\downarrow}}^{-1}
+          [\Pi_\ell]_{\mathcal{I}_\ell^{\downarrow},\,(\sigma_{\ell+1}j_{\ell+2})}.
+          $$
+        </div>
+        <p>
+          ここで $\mathcal{I}_\ell^{\downarrow}$ と $\mathcal{J}_{\ell+1}^{\downarrow}$ は，
+          新しく選ばれた左側・右側のピボットリストです．
+          この分解の左因子と右因子が新しい $T_\ell$，$T_{\ell+1}$ に対応し，
+          真ん中の小さな行列が新しいピボット行列 $P_\ell$ に対応します．
+          図では，この対応関係を模式的に示しています．
+        </p>
+        <p>
+          実装では，この逆行列を毎回明示的に計算するのではなく，
+          prrLU 分解を用いて安定にピボットを選びます．
+          つまり，概念的には MCI の式で理解し，
+          実際のアルゴリズムでは prrLU 分解でそれを実装している，
+          というのが私の理解です．
+        </p>
+        <p>
+          アルゴリズム全体の流れは，概ね次のようになります．
+        </p>
+        <ol class="reference-list">
+          <li>まず，$F_{\hat{\sigma}} \neq 0$ となる初期点 $\hat{\sigma}$ を1つ選び，そこから初期ピボットリストを作る．</li>
+          <li>各境界 $\ell$ で $\Pi_\ell$ を作り，prrLU 分解によって新しいピボットリスト $\mathcal{I}_\ell^{\downarrow}, \mathcal{J}_{\ell+1}^{\downarrow}$ を選ぶ．</li>
+          <li>それを使って $T_\ell, P_\ell, T_{\ell+1}$ を更新し，次の境界へ進む．</li>
+          <li>左から右への sweep と，右から左への sweep を繰り返し，誤差が許容値以下になったら止める．</li>
+        </ol>
+        <div class="math-block">
+          $$
+          \|F - \widetilde{F}\|_{\infty} < \varepsilon .
+          $$
+        </div>
+        <p>
+          ここで $\varepsilon$ はあらかじめ決めた許容誤差です．
+          もちろん実際には $F$ 全体を持っていないので，
+          厳密な意味で常にこのノルムを直接評価するわけではありません．
+          しかし考え方としては，
+          「ピボットを追加しながら sweep を繰り返し，
+          近似が十分安定したところで止める」
+          という理解でよいと思います．
+        </p>
+        <figure class="article-figure">
+          <img src="../../assets/images/research/Pi_tensor_to_TandP.png" alt="Π tensor を T テンソルとピボット行列へ分解する模式図">
+          <figcaption>
+            局所更新では，$\Pi$ tensor を分解して新しい $T$ テンソルとピボット行列を作り，
+            次の更新に使う代表点を決めていきます．
+          </figcaption>
+        </figure>
+        <p>
+          修論では，この局所更新の結果として得られる代表点の列をピボットリストと呼んでいます．
+          厳密な記号は少し多くなりますが，本質的には
+          「各境界で，どの左側の組と右側の組を代表として採用するか」
+          を記録しているだけです．
+        </p>
+        <p>
+          この $\Pi$ tensor の分解には prrLU 分解が関わってきます．
+          私はこの部分を prrLU 分解に基づいて理解していますが，
+          TCI の原論文ではこの対応の説明がやや省略されており，
+          そのまま読むと追いにくい箇所があります．
+          そこで，論文の行間を埋める形で
+          <a href="https://zenn.dev/hirone_ishida/articles/9781c373633ae3" target="_blank" rel="noreferrer">Zenn 記事</a>
+          に整理しました．修論では付録にも同様の内容をまとめています．
+        </p>
+        <p>
+          ここでのポイントは，更新のたびに触っているのが
+          テンソル全体ではなく，ピボットから切り出した小さな断面だけだということです．
+          そのため，対象が非常に巨大でも，
+          「各要素を点評価できる」のであれば TCI を回せる可能性があります．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>TCI が向いている状況</h2>
+        <p>
+          修論の立場で言い換えると，TCI は次のような状況で特に威力を発揮します．
+        </p>
+        <ul class="item-list">
+          <li>テンソル全体は巨大だが，個々の要素は高速に評価できるとき．</li>
+          <li>対象が低ランク構造を持ち，少数のサンプルからでもよい近似が期待できるとき．</li>
+          <li>全要素を準備してから SVD するより，必要な点だけを順次評価する方がはるかに軽いとき．</li>
+        </ul>
+        <p>
+          逆に，対象が低ランクでない場合や，関数の点評価そのものが非常に重い場合には，
+          TCI でも効率が出にくくなります．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>補足</h2>
+        <p>
+          TCI には，局所探索だけでは重要なピボットを見逃してしまう
+          <em>ergodicity problem</em> が現れることがあります．
+          この問題や，大域的なピボット探索を組み合わせた改良アルゴリズムについては，
+          <a href="../../assets/docs/master_thesis.pdf" target="_blank" rel="noreferrer">修論PDF</a>
+          で詳しく議論しています．
+        </p>
+        <p>
+          また，関数の低ランク性を活用するために，Quantics表現と組み合わせることも可能です．Quantics表現は連続関数の離散化を，TCIはその離散化の元でのQTT推定と，両者は関数圧縮のための相補的な手法といえます．
+        </p>
+      </section>
+
+      <section class="section-block">
+        <h2>参考文献</h2>
+        <ol class="reference-list">
+          <li>S. Dolgov and D. Savostyanov, Computer Physics Communications 246, 106869 (2020).</li>
+          <li>Y. N. Fernandez et al., arXiv:2407.02454 (2024).</li>
+        </ol>
       </section>
     </div>
   </main>
