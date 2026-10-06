@@ -217,30 +217,64 @@ a:hover {
 }
 
 .site-nav ul a {
+  position: relative;
   display: inline-block;
   padding: 0.45rem 0.8rem;
-  border-radius: 999px;
   color: var(--text);
   text-decoration: none;
   font-size: 0.95rem;
+  font-weight: 400;
+  vertical-align: top;
+}
+
+.site-nav ul a:not(.nav-secret-link)::before {
+  content: "";
+  position: absolute;
+  left: 0.8rem;
+  right: 0.8rem;
+  bottom: 0.2rem;
+  height: 2px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.28s ease;
+  pointer-events: none;
+}
+
+.site-nav ul a:not(.nav-secret-link)::after {
+  content: attr(data-nav-label);
+  display: block;
+  font-weight: 700;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  user-select: none;
+  pointer-events: none;
 }
 
 .site-nav ul a.nav-secret-link {
-  position: relative;
   min-width: 5.4rem;
   min-height: 2.15rem;
 }
 
 .site-nav ul a:hover,
 .site-nav ul a:focus-visible {
-  background: var(--surface-muted);
   outline: none;
 }
 
+.site-nav ul a:not(.nav-secret-link):hover::before,
+.site-nav ul a:not(.nav-secret-link):focus-visible::before {
+  transform: scaleX(1);
+}
+
 .site-nav ul a.active {
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-weight: 600;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-nav ul a:not(.nav-secret-link)::before {
+    transition: none;
+  }
 }
 
 .sr-only {

@@ -48,8 +48,20 @@
 
   applyTheme(getPreferredTheme(), false);
 
+  function stabilizeNavLinkWidths() {
+    document
+      .querySelectorAll(".site-nav ul a:not(.nav-secret-link)")
+      .forEach(function (link) {
+        var label = link.textContent.trim();
+        if (label) {
+          link.dataset.navLabel = label;
+        }
+      });
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     applyTheme(getPreferredTheme(), false);
+    stabilizeNavLinkWidths();
 
     document
       .querySelectorAll(".theme-switch button[data-theme-value]")
