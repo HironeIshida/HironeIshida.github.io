@@ -569,7 +569,31 @@ a:hover {
 
 .article-layout {
   display: grid;
-  gap: 1rem;
+  gap: 2.1rem;
+}
+
+.article-layout .section-block {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.article-layout .section-block + .section-block {
+  margin-top: 0;
+}
+
+.article-layout h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  line-height: 1.2;
+}
+
+.article-layout h2 {
+  margin: 0 0 0.7rem;
+  font-size: 1.45rem;
+  line-height: 1.35;
 }
 
 .article-lead {
@@ -1232,6 +1256,10 @@ a:hover {
   .table-card,
   .card {
     padding: 1.2rem;
+  }
+
+  .article-layout .section-block {
+    padding: 0;
   }
 
   .home-hero,
