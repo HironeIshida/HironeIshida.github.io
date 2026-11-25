@@ -1137,6 +1137,23 @@ a:hover {
   margin-top: 1rem;
 }
 
+.plain-page .section-block,
+.plain-page .card {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.plain-page .section-block + .section-block {
+  margin-top: 2.2rem;
+}
+
+.plain-page .card-grid {
+  margin-top: 2.2rem;
+}
+
 .profile-fields {
   margin-top: 1.1rem;
   display: grid;
