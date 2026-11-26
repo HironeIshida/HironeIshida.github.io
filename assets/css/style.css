@@ -1187,6 +1187,11 @@ a:hover {
   margin: 1.8rem 0 0.7rem;
 }
 
+img {
+  max-width: 100%;
+  height: auto;
+}
+
 .paper-summary {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
