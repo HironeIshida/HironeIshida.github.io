@@ -1194,12 +1194,12 @@ img {
 
 .paper-summary {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   gap: 2rem;
   align-items: start;
 }
 
-.paper-summary-text h3 {
+.paper-summary-text p:first-child {
   margin-top: 0;
 }
 
