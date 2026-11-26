@@ -66,12 +66,43 @@
         </ul>
       </section>
 
-      <section class="card-grid">
-        <article class="card">
-          <h2>工事中</h2>
-          <p>
-            次の論文紹介ページを追加予定です．
-          </p>
+      <section class="section-block">
+        <h2>論文解説</h2>
+        <article class="paper-summary">
+          <div class="paper-summary-text">
+            <h3>多軌道電子格子模型におけるファインマンダイアグラムの低ランクQTT表現</h3>
+            <p class="paper-summary-ref">
+              H. Ishida, N. Okada, S. Hoshino, H. Shinaoka,
+              <a class="publication-link" href="https://journals.aps.org/prl/abstract/10.1103/tkcp-p5br" target="_blank" rel="noreferrer">Phys. Rev. Lett. 135, 046502 (2025)</a>;
+              <a class="arxiv-link" href="https://arxiv.org/abs/2405.06440" target="_blank" rel="noreferrer">arXiv:2405.06440</a>.
+            </p>
+            <p>
+              ファインマンダイアグラムに基づく摂動計算は，強相関電子系の数値シミュレーションに欠かせない道具です．
+              しかし，多軌道系や高次のダイアグラムでは多次元の積分が必要となり，
+              確率的なサンプリングに基づく量子モンテカルロ法では負符号問題が生じ，計算が困難になります．
+            </p>
+            <p>
+              本研究ではTensor Cross Interpolation (TCI)とQuantics Tensor Train (QTT)を組み合わせることで，多軌道電子格子模型の2次の自己エネルギーを解析しました．
+              ファインマンダイアグラムを構成するグリーン関数の虚時間依存性をquantics表現で離散化し，電子軌道やフォノン振動モードといった離散変数とともに1つのTensor Trainで表現することで，ダイアグラムに低ランク構造が潜んでいることを明らかにしました(図a, b)．
+              また，従来のTCIアルゴリズムでは離散変数空間を十分に探索できないergodicity problemが生じるため，新たにglobal search アルゴリズムを導入することで，探索の問題を解決しました．
+            </p>
+            <p>
+              その結果，ダイアグラムの近似誤差がボンド次元に対して冪以上の速度で減衰し，この傾向は超伝導による対称性の破れや外場の有無によらないことを示しました(図c)．
+              さらに，QTT表現を用いることで，虚時間方向に指数的高解像度を実現し，従来のTCIで必要だった被積分関数の不連続性に合わせた領域分割も不要になりました．
+            </p>
+          </div>
+          <figure class="paper-summary-figure">
+            <img src="../assets/img/research/prl2025-fig1.png" alt="電子・フォノン自己エネルギーの2次のファインマンダイアグラムとTensor Train表現，各ボンドのボンド次元，およびボンド次元に対する補間誤差" loading="lazy" />
+            <figcaption>
+              (a) 電子とフォノンの2次の自己エネルギーのファインマンダイアグラムと，その被積分関数のTensor Train表現．
+              (b) 各ボンドのボンド次元．破線は圧縮できない場合（最悪の場合）．
+              (c) ボンド次元に対する補間誤差．
+              <span class="figure-credit">
+                Reprinted figure with permission from H. Ishida, N. Okada, S. Hoshino, and H. Shinaoka,
+                Phys. Rev. Lett. 135, 046502 (2025). Copyright 2025 by the American Physical Society.
+              </span>
+            </figcaption>
+          </figure>
         </article>
       </section>
     </div>
