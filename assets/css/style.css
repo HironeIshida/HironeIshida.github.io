@@ -1154,15 +1154,12 @@ a:hover {
   margin-top: 2.2rem;
 }
 
-.research-heading {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.3rem 1.2rem;
+.research-intro h1:has(+ .research-switch) {
+  margin-bottom: 0;
 }
 
-.research-heading h1 {
-  margin: 0;
+.research-switch {
+  margin-top: 0.4rem;
 }
 
 .research-switch button {
