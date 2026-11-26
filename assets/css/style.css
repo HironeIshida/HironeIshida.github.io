@@ -1154,6 +1154,42 @@ a:hover {
   margin-top: 2.2rem;
 }
 
+.research-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 1.2rem;
+}
+
+.research-heading h1 {
+  margin: 0;
+}
+
+.research-switch button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.research-switch button:hover,
+.research-switch button:focus-visible {
+  color: var(--link-hover);
+  text-decoration: underline;
+  outline: none;
+}
+
+.research-panel {
+  margin-top: 2.2rem;
+}
+
+.research-panel h3 {
+  margin: 1.8rem 0 0.7rem;
+}
+
 .profile-fields {
   margin-top: 1.1rem;
   display: grid;
